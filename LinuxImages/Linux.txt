@@ -1,0 +1,181 @@
+mRemoteNg ===>
+
+https://mremoteng.org/
+
+----------------------------------------------------------------------------------------------------------------
+ <=================install ms-sql server in CentOs ================>
+
+$ sudo curl -o /etc/yum.repos.d/mssql-server.repo https://packages.microsoft.com/config/rhel/8/mssql-server-2019.repo
+$ sudo yum install -y mssql-server
+$ sudo /opt/mssql/bin/mssql-conf setup                                           # select standard 
+$ systemctl status mssql-server
+
+
+update CentOs packages =======> 
+
+$  cd /etc/yum.repos.d/
+$  sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+$  sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+$ yum update -y
+
+
+
+Appsettings.json 
+connection string modify for sql server : TrustServerCertificate = true;
+
+
+1.  Program.cs ===> 
+  builder.WebHost.UseUrls("http://192.168.20.214:5050");
+
+2   publish project
+	$ dotnet publish -c Release -o /home/dusp/publish -r linux_64 --no-self-contained
+	
+===============> create folder from where application run
+$ mkdir -p /var/www/chatbot
+$ cd /var/www/chatbot    
+
+<=============== create service ======================>
+$ nano /etc/systemd/system/chatbot.service
+
+<=================in this servecr ===================> 
+
+[Unit]
+Description=ChatBot With SingnalR App running on Redhat 8 
+
+[Service]
+
+WorkingDirectory=/var/www/chatbot/publish
+ExecStart=/usr/bin/dotnet /var/www/chatbot/publish/ChatBotWithSingnalR.dll
+Restart=always
+# Restart service after 10 seconds if the dotnet service crashes:
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=webapp-identifier
+User=root
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+
+[Install]
+WantedBy=multi-user.target
+
+<========relaod  servecr ======> 
+
+$ systemctl daemon-reload
+$ chmod u+x /etc/systemd/system/chatbot.service
+$ systemctl enable chatbot.service
+$ systemctl status chatbot.service
+$ systemctl restart chatbot.service 
+
+<=================== get accece from other pc or disable firewal ====================>
+
+$ yum install vim nmap -y
+$ nmap localhost
+$ sestatus
+$ vim /etc/selinux/config                                                     ## disable Firewall
+$ systemctl disable firewalld
+$ reboot
+
+-----------------------------------------------------------Nginx------------------------------------------------
+
+in >>>>>$ sudo vim   /etc/nginx/confi.d/aspcore.conf
+
+server {
+    listen  80 default_server;
+    server_name mizanapp.com https://www.mizanaap.com;
+   root   /var/www/react;
+    location / {
+     try_files $url $url/ = 404;
+    }
+}
+server {
+    listen  80;
+    server_name mizanapp.com https://www.mizanaap.com;
+    location / {
+        proxy_pass http://localhost:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for:
+    }
+}
+upstream backend {
+    server backend1.example.com       weight=5;
+    server backend2.example.com:8080;
+    server unix:/tmp/backend3;
+
+    server backup1.example.com:8080   backup;          # doamin or ip
+    server 192.168.2.35:8080   backup;
+}
+
+server {
+    location / {
+        proxy_pass http://backend;
+    }
+}
+
+<===================write all custom conf  in conf.d    folder ==================>
+nano conf.d/chatbot.conf
+
+server {
+ listen 80;
+ server_name mizanapp.com https://www.mizanaap.com;
+ location / {
+ proxy_pass http://192.168.20.214:2020;
+ proxy_http_version 1.1;
+ proxy_set_header Upgrade $http_upgrade;
+ proxy_set_header Connection keep-alive;
+ proxy_set_header Host $host;
+ proxy_cache_bypass $http_upgrade;
+ proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+ proxy_set_header X-Forwarded-Proto $scheme;
+ }
+}
+
+<============test nginx configuration ================>
+nginx -t
+
+<============= Secure the Application===============>
+Install the UFW package & Enable the firewall 
+$ sudo yum -y install ufw
+$ sudo ufw enable
+
+Configure Firewall to open only the ports needed for the app. In this case, ports 80 and 443 are used ==>
+$ sudo ufw allow 80/tcp
+$ sudo ufw allow 443/tcp
+$ sudo ufw status
+
+Install SSH server to connect remote shell like mRemoteng  -----:-)
+
+$ sudo yum install openssh-server
+$ sudo ufw allow ssh   
+$ sudo ufw  deny ssh  # to deny 
+-----------------------------------------------------------------------------------------------
+
+<==================FTP server to  ==================>
+$ dnf install vsftpd
+$ systemctl start vsftpd
+$ systemctl enable vsftpd
+$ cp /etc/vsftpd/vsftpd.conf /etc/vsftpd/vsftpd.conf.orig
+$ vim /etc/vsftpd/vsftpd.conf
+
+anonymous_enable=NO             
+local_enable=YES		
+write_enable=YES		
+local_umask=022		        
+dirmessage_enable=YES	        
+xferlog_enable=YES		
+connect_from_port_20=YES        
+xferlog_std_format=YES
+chroot_local_user=YES
+chroot_list_file = YES
+chroot_list_file=/etc/vsftpd/chroot_list       
+listen=NO   			
+listen_ipv6=YES		        
+pam_service_name=vsftpd
+userlist_enable=YES
+
+$ sudo adduser developer
+$ sudo passwd developer
+$ vim /etc/vsftpd.userlist
+$ vim /etc/vsftpd/chroot_list
+$ chown developer:developer /media/portal
+$ chmod 0700 /media/portal

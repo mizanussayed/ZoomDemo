@@ -1,0 +1,469 @@
+# Setup & Install : 
+    1) install node js & npm
+    2) install angular cli ( npm install -g @angular/cli )
+    3) ng new appName
+
+
+# Files & Folder : 
+    * e2e -- End to end test folder for integration testing .
+    * node-modules -- npm packages are installed here .
+    * src   -- the main folder where we write appcation code.
+    * kama.conf.js   -- use for unit testing 
+    * angular.json   -- consist configuration of angular project . 
+    * package.json   --  hold npm pacakge dependancy . 
+    * package.lock.json  -- hold already installed or lock package name . 
+    * tsconfig.json   -- hold TypeScript compilation option . 
+    * tslint.json  -- consist rules for checking typescript code and compilation rule .
+
+
+
+
+--------------------Angular CLI ----------------------
+# ng -v    -- angular cli version 
+# npm install -g @angular/cli    
+# ng new AppName   -- create new Project 
+# ng --dry-run (-d)    -- without making any change
+# ng --skip-install (-si)   -- skip installing package
+# ng --inline-style  (-is)    -- use inline css 
+# ng -- inline-teplate (-it)  --use inline html template
+# ng --skip-tests (-st) --skip creating testing
+# ng generate component (gc) -- create component 
+# ng serve --open (s -o)   -- run server & open in browser
+# ng g c testComponent   -- create the component in a new folder 
+                        as like testComponent/test-component.ts , **.html , **.css
+# --flat      -dont create new folder when create component
+# ng g s / m / p/ cl  (for service, module, pipe, class ...) 
+
+# for more read >>   https://angular.io/cli/generate
+
+
+
+## src folder  : 
+    * app 
+    * asset 
+    * environment 
+    * index.html 
+    * main.ts
+    * style.css
+
+
+## Module 
+    in Angular refers to a place where the components, directive, pipes, services
+    are registered
+
+    import { NgModule } from '@angular/core';
+    import { BrowserModule } from '@angular/platform-browser';
+    
+    import { AppComponent } from './app.component';
+    
+    @NgModule({
+      declarations: [
+        AppComponent
+      ],
+      imports: [
+        BrowserModule
+      ],
+      providers: [],
+      bootstrap: [AppComponent]
+    })
+    export class AppModule { }
+
+
+## Component : 
+    the most basic ui building block of an angular app. there are three part and 
+    1 ) Class 
+    2 ) Template 
+    3 ) Decorator
+
+    import { Component } from '@angular/core';
+
+    @Component({
+      selector: 'app-root',
+      templateUrl: './app.component.html',
+      styleUrls: ['./app.component.css'],
+    })
+    export class AppComponent {
+      title = 'CodeSandbox';
+    }
+
+
+## Component with inline style & template 
+  -- cli command 
+    ng g c demo --inline-style --inline-template // -is -it
+
+    @Component({
+        selector: 'demo',
+        templateUrl: `<p>This is inline css and template demo component</p>`,
+        styleUrls: ['
+                    p { color: green; }
+                '],
+      })
+
+
+// Style 
+  component specific styles written in component.css 
+    or for common/global style in style.css
+    
+    Prority : 
+      1 ) inline
+      2 )  component
+      3 ) global style.css 
+      
+//  Data-binding 
+
+ //Component Class --------- UI Logic  ------------
+  export class AppComponent {
+  title = "CodeSandbox";
+  message = "Angular 16";
+  display = false;
+  showMessage(){
+     this.display = true;
+  }
+}                                                        --  
+// View Template --------HTML ----------------
+  <div>
+      <h2>{{title}}</h2>
+      <h4>{{message}}</h4>
+      <button (click)="showMessage()">Click Me </button>
+      <div [hidden]="display">
+         <p>Display this Message</p>
+       </div>
+  </div>
+
+// Direction of Data-binding 
+    one way -- string Interpolation {{title}}
+               Property [hidden]
+               Event   (click)
+    two way -- combination of Property & Event
+               [ngModel]
+
+##  string Interpolation  {{}} 
+* it is ue to bind data and display dynamic data 
+* can be used js expression inside it . 
+* any property, funtion, calculation can be express here . 
+* can not use for value assigning, create instance, 
+               increament or decrement expression
+
+###  Property binding
+        <input [value]="message" />
+        <input bind-value="message" />
+        <input [arial-hidden]="" />  ---this is not possible
+        <input [attr.arial-hidden]="" />  --- but this is  possible 
+
+### Two way binding 
+        <input [value]="message" (input)="showMessage()" />
+        <input [(input)]="message" />
+        
+
+//    --------------- Directives------------------
+ * TypeScript Class
+ * Intructions to the DOM.
+    ** Manipulate DOM,
+    ** Change Behavior,
+    ** Add / Remove DOM Elements
+
+// Types of Angular Directives
+
+1. Component Directive with template  // Special directive
+2. Attribute Directive is used to change appearence or behavior of DOM element
+    -- ngStyle, ngClass, ngModel
+3. Structural Directive is used to add or remove DOM element on the app  
+    -- ngIf, ngFor, ngSwitch.
+
+— — — — — — — — — — — — — -
+<button [className]="'btn btn-primary'"> click me </button>
+<button class="btn" [class.btn-primary]="true"> click me </button>
+// passing string
+<button [ngClass]="'btn btn-primary'"> click me </button>
+// list
+<button [ngClass]="['btn', 'btn-primary']"> click me </button>
+// object
+<button [ngClass]="{ btn:true, 'btn-primary':true }"> click me </button>
+  
+// ngStyle cas also passing string, list, object
+<button [ngStyle]="{background: 'red'}"> click me </button>
+
+//app.component.ts
+	 show : stirng = yes;
+
+//app.component.html
+<button *ngIf="show=='yes'; then first else second">ok</button>
+<ng-template #first>
+  <p>this is if param</p>
+</ng-template>
+<ng-template #second>
+  <p>this is else param</p>
+</ng-template>
+
+// *ngFor & switch
+//app.component.ts   
+program = ["c#", "java", "python"];
+color:string = "red";
+	
+<ul *ngFor="let p of program; i as index;">
+    <li> {{i}} number language is --> {{p}} </li>
+</ul>
+
+// switch case:
+<div [ngSwitch]="color">
+   <p *ngSwitchCase="'red'"> red color</p>
+   <p *ngSwitchDefault>default case </p>
+</div>	
+
+// custom property-binding / send data parent to child
+//parent.component.ts
+	brandName:string = "Oppo";
+
+//parant.component.html                             
+	<p> this is parent component</p>
+  <child [productBand]="brandName" />
+
+//child.component.ts 
+	@input()
+	brandName="";
+//child.component.html
+	<p> this is child component</p>
+	<p> brand name is {{brandName}} </p>
+
+//custom event-binding / send data child to parent
+//parent.component.ts
+     displayChildData(data:string){
+	     console.log(`info from child ${data}`);
+	   }                                                         
+//parent.component.html  
+	<p> this is parent component</p>
+	<child (sendChildData)="displayChildData($event)" />
+	  
+//child.component.ts
+	@output()
+	sendChildData : EventEmitter<string> = new EventEmitter<string>();
+	getInputValue(e:any){
+		this.sendChildData.emit(e.value);
+	}                                                            
+//child.component.html
+	<p> this is child component</p>
+	<input (input)="getInputValue($event)" type="text" /> 
+
+
+// A refercne of a DOM element & can be asscessed from  
+// related Component or Directive 
+                                                      --
+//app.component.html 
+	<input type="text" #searchInput />
+	<button (click)="getText(searchInput)> click me </button>
+	  
+//app.component
+	getText(el:HtmlInputElement){
+		console.log(el.value);
+	}
+	
+// --component as reference variable / get sibling data ---
+// product.component.ts
+	viewProduct: string = "Mobile";
+
+//container.component.html
+  <p> this is container component </p>
+ 	<product #ProductComponent />
+	<product-details *ngIf="ProductComponent.viewProduct" />
+
+
+
+// @viewChild decorator is used to qurey and get a reference of first matching DOM element 
+// initialized when as well as component construction is initialized
+
+app.componet.ts
+	@viewChild('searchInput')
+		inputEl: ElementRef ;
+
+	getSearchText(){
+		console.log(this.inputEl.nativeElement.value);
+	}
+app.componet.html 
+	<input type="text" #searchInput />
+	<button (click)="getSearchText()> click me </button>
+
+
+//  @viewChildren decorator to all matching DOM elements and initialized on life-cycle change detection
+//app.component.ts
+  	  @viewChildren('inputEl')
+  		inputEls: @ueryList<ElementRef>;
+
+	    getSearchText(){
+		    this.inputEls.foreach(e) => {
+		       console.log(e.nativeElement.value);
+	    	}	
+	    }                                                      --
+//app.compnent.html 
+	<input type="text" #inputEl />
+	<input type="text" #inputEl />
+	<button (click)="getSearchText()"> click me </button>
+
+
+<h2>ng-template is angular element to wrap an HTML snippet</h2>
+<ng-template #demoTemp>
+    <p> this is inside template</p>
+    <p> this is an example of ng-template </p>
+</ng-template> 
+
+<div *ngTemplateOutlet="demoTemp"></div>
+
+<div *ngIf="1=1; else demoTemp"> 
+   <p> Another usage  of ng-template </p>
+</div>
+
+
+<ng-container *ngTemplateOutlet="demoTemp"></ng-container>
+<ng-container *ngIf="1=1; else demoTemp"> 
+<p> ng-container can hold structural directive without
+	   adding a new element to the DOM </p>
+</ng-container>
+
+// @content-child decoretor to access a refernce of a DOM element,
+// from the projected content into child component class or directive
+// child.component.ts
+      	@ContentChild('param')
+		    pEl: ElementRef;
+	
+	      @ContentChild(app-test)
+		    testCom : testComponent;       
+// child.component.html 
+    <h2> child component </h2>
+    <ng-content></ng-content>               
+//parent.component.html 
+	  <app-child>
+	     <p #param >reference of DOM element in projected content</p>
+	  </app-child>
+	  <app-test />
+
+// ContentChildren
+//app-child.component.ts
+	  @ContentChildren('param')
+	  	pEl: QueryList<ElementRef>;
+	
+	    ngAfterContentInit():void{
+	      this.pEl.first.nativeElement.setAttrubute('style','color:blue') 
+	    }                                                                 --
+//parent.componet.html
+	  <app-child>
+	     <p #param >reference of DOM element </p>
+  	     <p #param >@ContentChildren() for all matching </p>
+    </app-child>
+
+//------ custom Attribute directive -----
+
+ @Directive({
+     selector: '[changeColor]'
+ })
+ export class ChangeColor{
+  	//private el : ElementRef;
+	  //construction(ele:ElementRef){ this.el = ele;}
+
+	  construction(private el: ElementRef){}
+
+	  ngOnInit(){
+		this.el.netiveElement.style.color = "red";
+	  }
+ }                                                       
+ <p changeColor> it is custom directive </p>
+
+
+ Renderer2
+// allows us to manipulate the DOM without accessing the DOM elements directly, 
+// by providing a layer of abstraction between the DOM Element and the componet code.
+
+	construction(private ele:ElementRef, private ren: Renderer2){}
+
+	ngOnInit(){
+		this.ren.setStyle(this.ele.netiveElement, "backgroundColor", "red");
+		this.ren.setAttrubute(this.ele.netiveElement, "title","example title");
+	}
+
+
+//is listen to a DOM event on the host element & it react to that event by executing an 
+//event handler method in directive
+//get-focus.directive.ts
+    construction(private ele:ElementRef, private ren: Renderer2){}
+	  @HostListner('onmouseenter')
+	  onMouseEnter(){
+		  this.ren.addClass(this.el.netiveElement, 'zooming-product');
+	  }
+	  @HostListner('onmouseout')
+	  onMouseOut(){
+		  this.ren.removeClass(this.el.netiveElement, 'zooming-product');
+	  }                                                                    --
+
+	<p GetFocus> it is @HostListner example </p>
+
+//@HostBinding binds the property of host Element to a property of a directive or component
+
+	@HostBinding('style.backgroundColor') bgColor = "pink";
+	@HostBinding('style.color') color = "yellow";
+
+ 	@HostListner('onmouseenter')
+	onMouseEnter(){
+		this.bgColor = "green";
+		this.color ="red";
+	}
+<p GetFocus> it is @HostBindig example </p>
+
+// Property binding in directive / string
+//change-color.directive.ts
+	  // only one input property can be alias as directive name
+	@input('changeColor') backColor : string = "yellow";  
+	@input() textColor : string = "pink";  
+
+	ngOnInit(){
+  	this.ren.setStyle(this.el.netiveElement, "backgroundColor", this.backColor);
+		this.ren.setStyle(this.el.netiveElement, "color", this.textColor);
+	}                                                                         
+<p [changeColor]="green" [textColor]="white"> Property binding in directive </p>
+
+
+------------------  or  object binding ---------------------
+
+//change-color.directive.ts
+
+	@input('changeColor') changeColor = {backColor:string, textColor:string};
+
+	ngOnInit(){
+		this.ren.setStyle(this.el.netiveElement, "backgroundColor", this.backColor);
+		this.ren.setStyle(this.el.netiveElement, "color", this.textColor);
+	}                                                                                
+<p [changeColor]="{backColor:'green',textColor:'red'}">Property binding in directive</p>
+
+
+// structural directive how work for ex. *ngIf
+
+<div *ngIf="true;else otherDiv">              
+	<p> how structural direcive works behind </p>
+</div>
+<ng-template #otherDiv>
+	<p> this is other content </p>
+</ng-template>
+               -------------  behind -------------
+                                  	<ng-template [ngIf]="true" [ngIfElse]="otherDiv">
+	                                     <div>
+	                                      	<p> wrap a ng-template element </p>
+	                                     </div>
+                                    	</ng-template>
+
+                                     	<ng-template #otherDiv> ......
+
+// custom structural directive 
+import { Directive, Input, TemplateRef, ViewContainerRef } from ‘@angular/core’;
+
+@Directive({ selector: ‘[appNot]’})
+export class NotDirective {
+  constructor(private hostEl: TemplateRef<any>,private wraperNg:ViewContainerRef){} 
+  @Input() set appNot(condition: boolean){
+   			if(!condition){
+    		   this.wraperNg.createEmbeddedView(this.hostEl);
+   			}else{
+      		 this.wraperNg.clear(); 
+  			}
+	   }		
+}                                                                                  --                                          
+<p *appNot=”false”>This paragraph is displayed because the condition is true. </p>
+
+
+
